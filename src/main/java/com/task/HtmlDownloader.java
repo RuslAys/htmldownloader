@@ -1,3 +1,5 @@
+package com.task;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +22,12 @@ public class HtmlDownloader {
     private static final Pattern LINK_PATTERN = Pattern.compile("<a\\s+(?:[^>]*?\\s+)?href=([\"'])(.*?)\\1");
     private static final Executor EXECUTOR = Executors.newScheduledThreadPool(2);
 
-    public void download(String url, String downloadsPath) {
+    public static void download(String url, String downloadsPath) {
         System.out.println("Start downloading");
         try {
+            if (!downloadsPath.endsWith("/")) {
+                downloadsPath = downloadsPath + "/";
+            }
             Saver.createDirIfNotExists(downloadsPath);
             doDownload(url, "", downloadsPath, "index.html", ConcurrentHashMap.newKeySet(), true);
         } catch (RuntimeException e) {
@@ -30,7 +35,7 @@ public class HtmlDownloader {
         }
     }
 
-    private void doDownload(String host, String subLink, String downloadsPath, String fileName, Set<String> knownLinks, boolean fetchChildAsync) {
+    private static void doDownload(String host, String subLink, String downloadsPath, String fileName, Set<String> knownLinks, boolean fetchChildAsync) {
         if (host == null) {
             return;
         }
@@ -63,7 +68,7 @@ public class HtmlDownloader {
         });
     }
 
-    private String downloadHtml(String host, String subLink) {
+    private static String downloadHtml(String host, String subLink) {
         StringBuilder result = new StringBuilder();
         try {
             String encodedUrl = String.format("%s%s", host, encode(subLink));
@@ -83,7 +88,7 @@ public class HtmlDownloader {
         return result.toString();
     }
 
-    private Set<String> getLinks(String html, Set<String> knownLinks) {
+    private static Set<String> getLinks(String html, Set<String> knownLinks) {
         Matcher matcher = LINK_PATTERN.matcher(html);
         Set<String> links = new HashSet<>();
         while (matcher.find()) {
@@ -95,14 +100,14 @@ public class HtmlDownloader {
         return links;
     }
 
-    private String adjustLink(String link) {
+    private static String adjustLink(String link) {
         if (!link.startsWith("/")) {
             return "/" + link;
         }
         return link;
     }
 
-    private boolean isLinkValid(String link, Set<String> knownLinks) {
+    private static boolean isLinkValid(String link, Set<String> knownLinks) {
         return !link.startsWith("http")
                 && !link.contains("#")
                 && !link.contains("@")
@@ -112,11 +117,11 @@ public class HtmlDownloader {
                 && !"/".equals(link) && !knownLinks.contains(link);
     }
 
-    private void printError(String url, RuntimeException e) {
+    private static void printError(String url, RuntimeException e) {
         System.out.printf("An error occurred while downloading %s: %s\n", url, e.getMessage());
     }
 
-    private String encode(String link) {
+    private static String encode(String link) {
         if (link.contains("/")) {
             String[] split = link.split("/");
             StringBuilder sb = new StringBuilder("/");
